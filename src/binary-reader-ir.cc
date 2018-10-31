@@ -1060,7 +1060,7 @@ Result BinaryReaderIR::OnFunctionName(Index index, string_view name) {
   int counter = 1;
   std::string orig_name = dollar_name;
   while (module_->func_bindings.count(dollar_name) != 0) {
-    dollar_name = orig_name + "." + std::to_string(counter++);
+    dollar_name = orig_name + "." + std::to_string(static_cast<int>(counter++));
   }
   func->name = dollar_name;
   module_->func_bindings.emplace(dollar_name, Binding(index));
