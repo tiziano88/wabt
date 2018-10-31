@@ -45,9 +45,7 @@ LabelNode::LabelNode(LabelType label_type, ExprList* exprs, Expr* context)
 
 class BinaryReaderIR : public BinaryReaderNop {
  public:
-  BinaryReaderIR(Module* out_module,
-                 const char* filename,
-                 Errors* errors);
+  BinaryReaderIR(Module* out_module, const char* filename, Errors* errors);
 
   bool OnError(const Error&) override;
 
@@ -213,7 +211,9 @@ class BinaryReaderIR : public BinaryReaderNop {
                                        Index func_index) override;
 
   Result OnDataSegmentCount(Index count) override;
-  Result BeginDataSegment(Index index, Index memory_index, bool passive) override;
+  Result BeginDataSegment(Index index,
+                          Index memory_index,
+                          bool passive) override;
   Result BeginDataSegmentInitExpr(Index index) override;
   Result EndDataSegmentInitExpr(Index index) override;
   Result OnDataSegmentData(Index index,
@@ -705,7 +705,8 @@ Result BinaryReaderIR::OnReturnCallExpr(Index func_index) {
   return AppendExpr(MakeUnique<ReturnCallExpr>(Var(func_index)));
 }
 
-Result BinaryReaderIR::OnReturnCallIndirectExpr(Index sig_index, Index table_index) {
+Result BinaryReaderIR::OnReturnCallIndirectExpr(Index sig_index,
+                                                Index table_index) {
   assert(sig_index < module_->func_types.size());
   auto expr = MakeUnique<ReturnCallIndirectExpr>();
   expr->decl.has_func_type = true;
