@@ -23,4 +23,5 @@ cc_library(
         "src/prebuilt/wasm2c.include.c",
         "src/range.h",
     ],
+    visibility = ["//visibility:public"],
 )
