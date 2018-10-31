@@ -310,8 +310,8 @@ std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
 }
 
 std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
-                                             bool mutable_,
-                                             uint32_t value) {
+                                                         bool mutable_,
+                                                         uint32_t value) {
   std::pair<Global*, Index> pair =
       AppendGlobalExport(name, Type::I32, mutable_);
   pair.first->typed_value.set_i32(value);
@@ -319,8 +319,8 @@ std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
 }
 
 std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
-                                             bool mutable_,
-                                             uint64_t value) {
+                                                         bool mutable_,
+                                                         uint64_t value) {
   std::pair<Global*, Index> pair =
       AppendGlobalExport(name, Type::I64, mutable_);
   pair.first->typed_value.set_i64(value);
@@ -328,8 +328,8 @@ std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
 }
 
 std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
-                                             bool mutable_,
-                                             float value) {
+                                                         bool mutable_,
+                                                         float value) {
   std::pair<Global*, Index> pair =
       AppendGlobalExport(name, Type::F32, mutable_);
   pair.first->typed_value.set_f32(value);
@@ -337,8 +337,8 @@ std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
 }
 
 std::pair<Global*, Index> HostModule::AppendGlobalExport(string_view name,
-                                             bool mutable_,
-                                             double value) {
+                                                         bool mutable_,
+                                                         double value) {
   std::pair<Global*, Index> pair =
       AppendGlobalExport(name, Type::F64, mutable_);
   pair.first->typed_value.set_f64(value);
@@ -400,32 +400,62 @@ HostModule* Environment::AppendHostModule(string_view name) {
   return module;
 }
 
-uint32_t ToRep(bool x) { return x ? 1 : 0; }
-uint32_t ToRep(uint32_t x) { return x; }
-uint64_t ToRep(uint64_t x) { return x; }
-uint32_t ToRep(int32_t x) { return Bitcast<uint32_t>(x); }
-uint64_t ToRep(int64_t x) { return Bitcast<uint64_t>(x); }
-uint32_t ToRep(float x) { return Bitcast<uint32_t>(x); }
-uint64_t ToRep(double x) { return Bitcast<uint64_t>(x); }
-v128     ToRep(v128 x) { return Bitcast<v128>(x); }
+uint32_t ToRep(bool x) {
+  return x ? 1 : 0;
+}
+uint32_t ToRep(uint32_t x) {
+  return x;
+}
+uint64_t ToRep(uint64_t x) {
+  return x;
+}
+uint32_t ToRep(int32_t x) {
+  return Bitcast<uint32_t>(x);
+}
+uint64_t ToRep(int64_t x) {
+  return Bitcast<uint64_t>(x);
+}
+uint32_t ToRep(float x) {
+  return Bitcast<uint32_t>(x);
+}
+uint64_t ToRep(double x) {
+  return Bitcast<uint64_t>(x);
+}
+v128 ToRep(v128 x) {
+  return Bitcast<v128>(x);
+}
 
 template <typename Dst, typename Src>
 Dst FromRep(Src x);
 
 template <>
-uint32_t FromRep<uint32_t>(uint32_t x) { return x; }
+uint32_t FromRep<uint32_t>(uint32_t x) {
+  return x;
+}
 template <>
-uint64_t FromRep<uint64_t>(uint64_t x) { return x; }
+uint64_t FromRep<uint64_t>(uint64_t x) {
+  return x;
+}
 template <>
-int32_t FromRep<int32_t>(uint32_t x) { return Bitcast<int32_t>(x); }
+int32_t FromRep<int32_t>(uint32_t x) {
+  return Bitcast<int32_t>(x);
+}
 template <>
-int64_t FromRep<int64_t>(uint64_t x) { return Bitcast<int64_t>(x); }
+int64_t FromRep<int64_t>(uint64_t x) {
+  return Bitcast<int64_t>(x);
+}
 template <>
-float FromRep<float>(uint32_t x) { return Bitcast<float>(x); }
+float FromRep<float>(uint32_t x) {
+  return Bitcast<float>(x);
+}
 template <>
-double FromRep<double>(uint64_t x) { return Bitcast<double>(x); }
+double FromRep<double>(uint64_t x) {
+  return Bitcast<double>(x);
+}
 template <>
-v128 FromRep<v128>(v128 x) { return Bitcast<v128>(x); }
+v128 FromRep<v128>(v128 x) {
+  return Bitcast<v128>(x);
+}
 
 template <typename T>
 struct FloatTraits;
@@ -527,25 +557,28 @@ bool IsConversionInRange<uint64_t, float>(uint32_t bits) {
  * 3 21098765432 1098..9..432109...210
  * -----------------------------------
  * 0 00000000000 0000..0..000000...000 0x0000000000000000 => 0
- * 0 10000011101 1111..1..111000...000 0x41dfffffffc00000 => 2147483647           (INT32_MAX)
- * 0 10000011110 1111..1..111100...000 0x41efffffffe00000 => 4294967295           (UINT32_MAX)
- * 0 10000111101 1111..1..111111...111 0x43dfffffffffffff => 9223372036854774784  (~INT64_MAX)
- * 0 10000111110 0000..0..000000...000 0x43e0000000000000 => 9223372036854775808
- * 0 10000111110 1111..1..111111...111 0x43efffffffffffff => 18446744073709549568 (~UINT64_MAX)
- * 0 10000111111 0000..0..000000...000 0x43f0000000000000 => 18446744073709551616
- * 0 10001111110 1111..1..000000...000 0x47efffffe0000000 => 3.402823e+38         (FLT_MAX)
- * 0 11111111111 0000..0..000000...000 0x7ff0000000000000 => inf
- * 0 11111111111 0000..0..000000...001 0x7ff0000000000001 => nan(0x1)
- * 0 11111111111 1111..1..111111...111 0x7fffffffffffffff => nan(0xfff...)
- * 1 00000000000 0000..0..000000...000 0x8000000000000000 => -0
- * 1 01111111110 1111..1..111111...111 0xbfefffffffffffff => -1 + ulp             (~UINT32_MIN, ~UINT64_MIN)
- * 1 01111111111 0000..0..000000...000 0xbff0000000000000 => -1
- * 1 10000011110 0000..0..000000...000 0xc1e0000000000000 => -2147483648          (INT32_MIN)
- * 1 10000111110 0000..0..000000...000 0xc3e0000000000000 => -9223372036854775808 (INT64_MIN)
- * 1 10001111110 1111..1..000000...000 0xc7efffffe0000000 => -3.402823e+38        (-FLT_MAX)
- * 1 11111111111 0000..0..000000...000 0xfff0000000000000 => -inf
- * 1 11111111111 0000..0..000000...001 0xfff0000000000001 => -nan(0x1)
- * 1 11111111111 1111..1..111111...111 0xffffffffffffffff => -nan(0xfff...)
+ * 0 10000011101 1111..1..111000...000 0x41dfffffffc00000 => 2147483647
+ * (INT32_MAX) 0 10000011110 1111..1..111100...000 0x41efffffffe00000 =>
+ * 4294967295           (UINT32_MAX) 0 10000111101 1111..1..111111...111
+ * 0x43dfffffffffffff => 9223372036854774784  (~INT64_MAX) 0 10000111110
+ * 0000..0..000000...000 0x43e0000000000000 => 9223372036854775808 0 10000111110
+ * 1111..1..111111...111 0x43efffffffffffff => 18446744073709549568
+ * (~UINT64_MAX) 0 10000111111 0000..0..000000...000 0x43f0000000000000 =>
+ * 18446744073709551616 0 10001111110 1111..1..000000...000 0x47efffffe0000000
+ * => 3.402823e+38         (FLT_MAX) 0 11111111111 0000..0..000000...000
+ * 0x7ff0000000000000 => inf 0 11111111111 0000..0..000000...001
+ * 0x7ff0000000000001 => nan(0x1) 0 11111111111 1111..1..111111...111
+ * 0x7fffffffffffffff => nan(0xfff...) 1 00000000000 0000..0..000000...000
+ * 0x8000000000000000 => -0 1 01111111110 1111..1..111111...111
+ * 0xbfefffffffffffff => -1 + ulp             (~UINT32_MIN, ~UINT64_MIN) 1
+ * 01111111111 0000..0..000000...000 0xbff0000000000000 => -1 1 10000011110
+ * 0000..0..000000...000 0xc1e0000000000000 => -2147483648          (INT32_MIN)
+ * 1 10000111110 0000..0..000000...000 0xc3e0000000000000 =>
+ * -9223372036854775808 (INT64_MIN) 1 10001111110 1111..1..000000...000
+ * 0xc7efffffe0000000 => -3.402823e+38        (-FLT_MAX) 1 11111111111
+ * 0000..0..000000...000 0xfff0000000000000 => -inf 1 11111111111
+ * 0000..0..000000...001 0xfff0000000000001 => -nan(0x1) 1 11111111111
+ * 1111..1..111111...111 0xffffffffffffffff => -nan(0xfff...)
  */
 
 template <>
@@ -634,36 +667,119 @@ bool IsInRangeF64DemoteF32RoundToNegF32Max(uint64_t bits) {
   return bits > 0xc7efffffe0000000ULL && bits < 0xc7effffff0000000ULL;
 }
 
-template <typename T, typename MemType> struct ExtendMemType;
-template<> struct ExtendMemType<uint32_t, uint8_t> { typedef uint32_t type; };
-template<> struct ExtendMemType<uint32_t, int8_t> { typedef int32_t type; };
-template<> struct ExtendMemType<uint32_t, uint16_t> { typedef uint32_t type; };
-template<> struct ExtendMemType<uint32_t, int16_t> { typedef int32_t type; };
-template<> struct ExtendMemType<uint32_t, uint32_t> { typedef uint32_t type; };
-template<> struct ExtendMemType<uint32_t, int32_t> { typedef int32_t type; };
-template<> struct ExtendMemType<uint64_t, uint8_t> { typedef uint64_t type; };
-template<> struct ExtendMemType<uint64_t, int8_t> { typedef int64_t type; };
-template<> struct ExtendMemType<uint64_t, uint16_t> { typedef uint64_t type; };
-template<> struct ExtendMemType<uint64_t, int16_t> { typedef int64_t type; };
-template<> struct ExtendMemType<uint64_t, uint32_t> { typedef uint64_t type; };
-template<> struct ExtendMemType<uint64_t, int32_t> { typedef int64_t type; };
-template<> struct ExtendMemType<uint64_t, uint64_t> { typedef uint64_t type; };
-template<> struct ExtendMemType<uint64_t, int64_t> { typedef int64_t type; };
-template<> struct ExtendMemType<float, float> { typedef float type; };
-template<> struct ExtendMemType<double, double> { typedef double type; };
-template<> struct ExtendMemType<v128, v128> { typedef v128 type; };
+template <typename T, typename MemType>
+struct ExtendMemType;
+template <>
+struct ExtendMemType<uint32_t, uint8_t> {
+  typedef uint32_t type;
+};
+template <>
+struct ExtendMemType<uint32_t, int8_t> {
+  typedef int32_t type;
+};
+template <>
+struct ExtendMemType<uint32_t, uint16_t> {
+  typedef uint32_t type;
+};
+template <>
+struct ExtendMemType<uint32_t, int16_t> {
+  typedef int32_t type;
+};
+template <>
+struct ExtendMemType<uint32_t, uint32_t> {
+  typedef uint32_t type;
+};
+template <>
+struct ExtendMemType<uint32_t, int32_t> {
+  typedef int32_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, uint8_t> {
+  typedef uint64_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, int8_t> {
+  typedef int64_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, uint16_t> {
+  typedef uint64_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, int16_t> {
+  typedef int64_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, uint32_t> {
+  typedef uint64_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, int32_t> {
+  typedef int64_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, uint64_t> {
+  typedef uint64_t type;
+};
+template <>
+struct ExtendMemType<uint64_t, int64_t> {
+  typedef int64_t type;
+};
+template <>
+struct ExtendMemType<float, float> {
+  typedef float type;
+};
+template <>
+struct ExtendMemType<double, double> {
+  typedef double type;
+};
+template <>
+struct ExtendMemType<v128, v128> {
+  typedef v128 type;
+};
 
-template <typename T, typename MemType> struct WrapMemType;
-template<> struct WrapMemType<uint32_t, uint8_t> { typedef uint8_t type; };
-template<> struct WrapMemType<uint32_t, uint16_t> { typedef uint16_t type; };
-template<> struct WrapMemType<uint32_t, uint32_t> { typedef uint32_t type; };
-template<> struct WrapMemType<uint64_t, uint8_t> { typedef uint8_t type; };
-template<> struct WrapMemType<uint64_t, uint16_t> { typedef uint16_t type; };
-template<> struct WrapMemType<uint64_t, uint32_t> { typedef uint32_t type; };
-template<> struct WrapMemType<uint64_t, uint64_t> { typedef uint64_t type; };
-template<> struct WrapMemType<float, float> { typedef uint32_t type; };
-template<> struct WrapMemType<double, double> { typedef uint64_t type; };
-template<> struct WrapMemType<v128, v128> { typedef v128 type; };
+template <typename T, typename MemType>
+struct WrapMemType;
+template <>
+struct WrapMemType<uint32_t, uint8_t> {
+  typedef uint8_t type;
+};
+template <>
+struct WrapMemType<uint32_t, uint16_t> {
+  typedef uint16_t type;
+};
+template <>
+struct WrapMemType<uint32_t, uint32_t> {
+  typedef uint32_t type;
+};
+template <>
+struct WrapMemType<uint64_t, uint8_t> {
+  typedef uint8_t type;
+};
+template <>
+struct WrapMemType<uint64_t, uint16_t> {
+  typedef uint16_t type;
+};
+template <>
+struct WrapMemType<uint64_t, uint32_t> {
+  typedef uint32_t type;
+};
+template <>
+struct WrapMemType<uint64_t, uint64_t> {
+  typedef uint64_t type;
+};
+template <>
+struct WrapMemType<float, float> {
+  typedef uint32_t type;
+};
+template <>
+struct WrapMemType<double, double> {
+  typedef uint64_t type;
+};
+template <>
+struct WrapMemType<v128, v128> {
+  typedef v128 type;
+};
 
 template <typename T>
 Value MakeValue(ValueTypeRep<T>);
@@ -717,14 +833,36 @@ Value MakeValue<v128>(v128 v) {
   return result;
 }
 
-template <typename T> ValueTypeRep<T> GetValue(Value);
-template<> uint32_t GetValue<int32_t>(Value v) { return v.i32; }
-template<> uint32_t GetValue<uint32_t>(Value v) { return v.i32; }
-template<> uint64_t GetValue<int64_t>(Value v) { return v.i64; }
-template<> uint64_t GetValue<uint64_t>(Value v) { return v.i64; }
-template<> uint32_t GetValue<float>(Value v) { return v.f32_bits; }
-template<> uint64_t GetValue<double>(Value v) { return v.f64_bits; }
-template<> v128 GetValue<v128>(Value v) { return v.v128_bits; }
+template <typename T>
+ValueTypeRep<T> GetValue(Value);
+template <>
+uint32_t GetValue<int32_t>(Value v) {
+  return v.i32;
+}
+template <>
+uint32_t GetValue<uint32_t>(Value v) {
+  return v.i32;
+}
+template <>
+uint64_t GetValue<int64_t>(Value v) {
+  return v.i64;
+}
+template <>
+uint64_t GetValue<uint64_t>(Value v) {
+  return v.i64;
+}
+template <>
+uint32_t GetValue<float>(Value v) {
+  return v.f32_bits;
+}
+template <>
+uint64_t GetValue<double>(Value v) {
+  return v.f64_bits;
+}
+template <>
+v128 GetValue<v128>(Value v) {
+  return v.v128_bits;
+}
 
 template <typename T>
 ValueTypeRep<T> CanonicalizeNan(ValueTypeRep<T> rep) {
@@ -1165,9 +1303,8 @@ Result Thread::SimdRelBinop(BinopFunc<R, P> func) {
 
   // Constuct the Simd value by Lane data and Lane nums.
   for (int32_t i = 0; i < lanes; i++) {
-    simd_data_ret[i] = static_cast<L>(
-      func(simd_data_0[i], simd_data_1[i]) == 0? 0 : -1
-    );
+    simd_data_ret[i] =
+        static_cast<L>(func(simd_data_0[i], simd_data_1[i]) == 0 ? 0 : -1);
   }
 
   return PushRep<T>(Bitcast<T>(simd_data_ret));
@@ -1436,13 +1573,13 @@ ValueTypeRep<T> FloatFloor(ValueTypeRep<T> v_rep) {
 // f{32,64}.trunc
 template <typename T>
 ValueTypeRep<T> FloatTrunc(ValueTypeRep<T> v_rep) {
-  return CanonicalizeNan<T>(ToRep(std::trunc(FromRep<T>(v_rep))));
+  return CanonicalizeNan<T>(ToRep(trunc(FromRep<T>(v_rep))));
 }
 
 // f{32,64}.nearest
 template <typename T>
 ValueTypeRep<T> FloatNearest(ValueTypeRep<T> v_rep) {
-  return CanonicalizeNan<T>(ToRep(std::nearbyint(FromRep<T>(v_rep))));
+  return CanonicalizeNan<T>(ToRep(nearbyint(FromRep<T>(v_rep))));
 }
 
 // f{32,64}.sqrt
@@ -1828,7 +1965,7 @@ Result Thread::Run(int num_instructions) {
         break;
       }
 
-      case Opcode::ReturnCallIndirect:{
+      case Opcode::ReturnCallIndirect: {
         Table* table = ReadTable(&pc);
         Index sig_index = ReadU32(&pc);
         Index entry_index = Pop<uint32_t>();
@@ -1838,7 +1975,7 @@ Result Thread::Run(int num_instructions) {
         Func* func = env_->funcs_[func_index].get();
         TRAP_UNLESS(env_->FuncSignaturesAreEqual(func->sig_index, sig_index),
                     IndirectCallSignatureMismatch);
-        if (func->is_host) { // Emulate a call/return for imported functions
+        if (func->is_host) {  // Emulate a call/return for imported functions
           CHECK_TRAP(CallHost(cast<HostFunc>(func)));
           if (call_stack_top_ == 0) {
             result = Result::Returned;
@@ -2876,7 +3013,7 @@ Result Thread::Run(int num_instructions) {
         break;
       }
 
-    case Opcode::V8X16Shuffle: {
+      case Opcode::V8X16Shuffle: {
         const int32_t lanes = 16;
         // Define SIMD data array for SIMD add by lanes.
         int8_t simd_data_ret[lanes];
@@ -2905,31 +3042,31 @@ Result Thread::Run(int num_instructions) {
       }
 
       case Opcode::I8X16LoadSplat: {
-          CHECK_TRAP(Load<uint8_t, uint32_t>(&pc));
-          uint8_t lane_data = Pop<uint32_t>();
-          CHECK_TRAP(Push<v128>(SimdSplat<v128, uint8_t>(lane_data)));
-          break;
+        CHECK_TRAP(Load<uint8_t, uint32_t>(&pc));
+        uint8_t lane_data = Pop<uint32_t>();
+        CHECK_TRAP(Push<v128>(SimdSplat<v128, uint8_t>(lane_data)));
+        break;
       }
 
       case Opcode::I16X8LoadSplat: {
-          CHECK_TRAP(Load<uint16_t, uint32_t>(&pc));
-          uint16_t lane_data = Pop<uint32_t>();
-          CHECK_TRAP(Push<v128>(SimdSplat<v128, uint16_t>(lane_data)));
-          break;
+        CHECK_TRAP(Load<uint16_t, uint32_t>(&pc));
+        uint16_t lane_data = Pop<uint32_t>();
+        CHECK_TRAP(Push<v128>(SimdSplat<v128, uint16_t>(lane_data)));
+        break;
       }
 
       case Opcode::I32X4LoadSplat: {
-          CHECK_TRAP(Load<uint32_t, uint32_t>(&pc));
-          uint32_t lane_data = Pop<uint32_t>();
-          CHECK_TRAP(Push<v128>(SimdSplat<v128, uint32_t>(lane_data)));
-          break;
+        CHECK_TRAP(Load<uint32_t, uint32_t>(&pc));
+        uint32_t lane_data = Pop<uint32_t>();
+        CHECK_TRAP(Push<v128>(SimdSplat<v128, uint32_t>(lane_data)));
+        break;
       }
 
       case Opcode::I64X2LoadSplat: {
-          CHECK_TRAP(Load<uint64_t, uint64_t>(&pc));
-          uint64_t lane_data = Pop<uint64_t>();
-          CHECK_TRAP(Push<v128>(SimdSplat<v128, uint64_t>(lane_data)));
-          break;
+        CHECK_TRAP(Load<uint64_t, uint64_t>(&pc));
+        uint64_t lane_data = Pop<uint64_t>();
+        CHECK_TRAP(Push<v128>(SimdSplat<v128, uint64_t>(lane_data)));
+        break;
       }
 
       case Opcode::I8X16Add:
