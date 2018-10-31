@@ -2,6 +2,7 @@ cc_library(
     name = "wabt",
     srcs = glob([
         "src/*.cc",
+        "src/*.c",
         "src/interp/*.cc",
         "src/prebuilt/*.cc",
     ],
