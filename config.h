@@ -3,7 +3,7 @@
 
 // BEGIN GOOGLE3 MODIFICATIONS
 #ifdef NDEBUG
-#error This library uses assert()
+#warning This library uses assert()
 #endif
 // END GOOGLE3 MODIFICATIONS
 
