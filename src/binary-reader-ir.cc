@@ -351,7 +351,7 @@ std::string BinaryReaderIR::GetUniqueName(BindingHash* bindings,
   int counter = 1;
   std::string unique_name = orig_name;
   while (bindings->count(unique_name) != 0) {
-    unique_name = orig_name + "." + std::to_string(counter++);
+    unique_name = orig_name + "." + std::__cxx11::to_string(counter++);
   }
   return unique_name;
 }
