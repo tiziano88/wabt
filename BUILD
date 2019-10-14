@@ -12,16 +12,16 @@ cc_library(
             "src/prebuilt/*.cc",
         ],
         exclude = [
+            "src/prebuilt/*",
             "src/test-*",
             "src/wast-lexer.cc",
         ],
     ),
     hdrs = glob([
-        "config.h",
         "src/*.h",
         "src/interp/*.h",
         "src/prebuilt/*.h",
-    ]),
+    ]) + ["config.h"],
     textual_hdrs = [
         "src/opcode.def",
         "src/feature.def",

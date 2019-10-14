@@ -1,13 +1,26 @@
+/*
+ * Copyright 2016 WebAssembly Community Group participants
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef WABT_CONFIG_H_
 #define WABT_CONFIG_H_
 
-// BEGIN GOOGLE3 MODIFICATIONS
-#ifdef NDEBUG
-#warning This library uses assert()
-#endif
-// END GOOGLE3 MODIFICATIONS
-
 #include <stdint.h>
+#include <stdlib.h>
+
+#define WABT_VERSION_INFO "1.0.12-15-ga255ee84"
 
 /* TODO(binji): nice way to define these with WABT_ prefix? */
 
@@ -32,8 +45,8 @@
 /* Whether ENABLE_VIRTUAL_TERMINAL_PROCESSING is defined by windows.h */
 #define HAVE_WIN32_VT100 0
 
-#define COMPILER_IS_CLANG 1
-#define COMPILER_IS_GNU 0
+#define COMPILER_IS_CLANG 0
+#define COMPILER_IS_GNU 1
 #define COMPILER_IS_MSVC 0
 
 #define WITH_EXCEPTIONS 0
@@ -47,8 +60,6 @@
 #define alloca _alloca
 #elif defined(__MINGW32__)
 #include <malloc.h>
-#else
-#include <stdlib.h>
 #endif
 
 #if COMPILER_IS_CLANG || COMPILER_IS_GNU
@@ -83,12 +94,10 @@
 #define WABT_STATIC_ASSERT(x) _Static_assert((x), #x)
 #endif
 
-#define WABT_UNREACHABLE __builtin_unreachable()
-
 #elif COMPILER_IS_MSVC
 
 #include <intrin.h>
-#include <cstring>
+#include <string.h>
 
 #define WABT_UNUSED
 #define WABT_WARN_UNUSED
@@ -98,47 +107,31 @@
 #define WABT_LIKELY(x) (x)
 #define WABT_PRINTF_FORMAT(format_arg, first_arg)
 
-#define WABT_UNREACHABLE __assume(0)
-
 #else
 
 #error unknown compiler
 
 #endif
 
+#define WABT_UNREACHABLE abort()
+
+#ifdef __cplusplus
+
 namespace wabt {
 
 #if COMPILER_IS_CLANG || COMPILER_IS_GNU
 
-inline int Clz(unsigned x) {
-  return x ? __builtin_clz(x) : sizeof(x) * 8;
-}
-inline int Clz(unsigned long x) {
-  return x ? __builtin_clzl(x) : sizeof(x) * 8;
-}
-inline int Clz(unsigned long long x) {
-  return x ? __builtin_clzll(x) : sizeof(x) * 8;
-}
+inline int Clz(unsigned x) { return x ? __builtin_clz(x) : sizeof(x) * 8; }
+inline int Clz(unsigned long x) { return x ? __builtin_clzl(x) : sizeof(x) * 8; }
+inline int Clz(unsigned long long x) { return x ? __builtin_clzll(x) : sizeof(x) * 8; }
 
-inline int Ctz(unsigned x) {
-  return x ? __builtin_ctz(x) : sizeof(x) * 8;
-}
-inline int Ctz(unsigned long x) {
-  return x ? __builtin_ctzl(x) : sizeof(x) * 8;
-}
-inline int Ctz(unsigned long long x) {
-  return x ? __builtin_ctzll(x) : sizeof(x) * 8;
-}
+inline int Ctz(unsigned x) { return x ? __builtin_ctz(x) : sizeof(x) * 8; }
+inline int Ctz(unsigned long x) { return x ? __builtin_ctzl(x) : sizeof(x) * 8; }
+inline int Ctz(unsigned long long x) { return x ? __builtin_ctzll(x) : sizeof(x) * 8; }
 
-inline int Popcount(unsigned x) {
-  return __builtin_popcount(x);
-}
-inline int Popcount(unsigned long x) {
-  return __builtin_popcountl(x);
-}
-inline int Popcount(unsigned long long x) {
-  return __builtin_popcountll(x);
-}
+inline int Popcount(unsigned x) { return __builtin_popcount(x); }
+inline int Popcount(unsigned long x) { return __builtin_popcountl(x); }
+inline int Popcount(unsigned long long x) { return __builtin_popcountll(x); }
 
 #elif COMPILER_IS_MSVC
 
@@ -298,40 +291,11 @@ typedef long ssize_t;
 #endif
 #endif
 
-#if COMPILER_IS_MSVC && defined(_M_X64)
-// MSVC on x64 generates uint64 -> float conversions but doesn't do
-// round-to-nearest-ties-to-even, which is required by WebAssembly.
-#include <emmintrin.h>
-__inline double wabt_convert_uint64_to_double(unsigned __int64 x) {
-  __m128d result = _mm_setzero_pd();
-  if (x & 0x8000000000000000ULL) {
-    result = _mm_cvtsi64_sd(result, (x >> 1) | (x & 1));
-    result = _mm_add_sd(result, result);
-  } else {
-    result = _mm_cvtsi64_sd(result, x);
-  }
-  return _mm_cvtsd_f64(result);
-}
+double wabt_convert_uint64_to_double(uint64_t x);
+float wabt_convert_uint64_to_float(uint64_t x);
+double wabt_convert_int64_to_double(int64_t x);
+float wabt_convert_int64_to_float(int64_t x);
 
-__inline float wabt_convert_uint64_to_float(unsigned __int64 x) {
-  __m128 result = _mm_setzero_ps();
-  if (x & 0x8000000000000000ULL) {
-    result = _mm_cvtsi64_ss(result, (x >> 1) | (x & 1));
-    result = _mm_add_ss(result, result);
-  } else {
-    result = _mm_cvtsi64_ss(result, x);
-  }
-  return _mm_cvtss_f32(result);
-}
-
-#else
-__inline double wabt_convert_uint64_to_double(uint64_t x) {
-  return static_cast<double>(x);
-}
-
-__inline float wabt_convert_uint64_to_float(uint64_t x) {
-  return static_cast<float>(x);
-}
-#endif
+#endif  // __cplusplus
 
 #endif /* WABT_CONFIG_H_ */
